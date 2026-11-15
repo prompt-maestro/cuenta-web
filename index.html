@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F8F5EF">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; connect-src https://nlecncqjpuhasbvnhxby.supabase.co https://qtxmimkuvdeeevcktawh.supabase.co; base-uri 'none'; form-action 'none'">
+<title>Mi cuenta · Citas Garantizadas</title>
+<meta name="description" content="Tu cuenta de Citas Garantizadas: tu plan, tus pagos, tu semáforo y tus citas.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230e168c'/%3E%3Ctext x='16' y='22' font-family='Georgia' font-size='15' fill='white' text-anchor='middle'%3EPM%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F8F5EF; --paper-2:#EFE9DF; --surface:#FFFFFF;
+  --ink:#16193A; --ink-2:#44496A; --ink-3:#5F6480;
+  --line:#E6DFD3; --line-2:#D3CABA;
+  --accent:#1E2A8F; --accent-2:#141D6B; --accent-soft:#EEF0FA;
+  --ok:#1B7046; --ok-ink:#135237; --ok-soft:#E7F3EB; --ok-line:#C3E0CE;
+  --warn:#734503; --warn-dot:#C98A12; --warn-soft:#FDF4E1; --warn-line:#EED8A6;
+  --err:#AF2318; --err-soft:#FCECEA; --err-line:#F2C8C3;
+  --r:18px;
+  --sh-1:0 1px 2px rgba(22,25,58,.05),0 2px 10px rgba(22,25,58,.05);
+  --sh-2:0 2px 4px rgba(22,25,58,.05),0 12px 32px rgba(22,25,58,.09);
+  --f-d:'Playfair Display',Georgia,'Times New Roman',serif;
+  --f-b:'Outfit',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.5 var(--f-b);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
+h1:focus,h1:focus-visible{outline:none}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px calc(40px + env(safe-area-inset-bottom))}
+.marca{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--ink-2);font-size:15px;margin:4px 0 18px}
+.marca i{width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;font:600 14px/1 var(--f-d);font-style:normal}
+.title{font-family:var(--f-d);font-weight:600;font-size:29px;line-height:1.16;letter-spacing:-.01em;margin:8px 0 10px}
+.lead{color:var(--ink-2);margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh-1);margin:0 0 14px}
+.card h2{font:600 19px/1.3 var(--f-b);margin:0 0 6px}
+.card p{margin:0 0 10px;color:var(--ink-2)}
+.card p:last-child{margin-bottom:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:13px 18px;border-radius:16px;border:0;font:600 17px/1.2 var(--f-b);text-decoration:none;text-align:center;transition:transform .15s var(--ease),background .2s}
+.btn:active{transform:scale(.985)}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 22px rgba(30,42,143,.22)}
+.btn-primary:hover{background:var(--accent-2)}
+.btn-sec{background:var(--accent-soft);color:var(--accent)}
+.btn-mal{background:var(--err);color:#fff}
+.btn-link{display:block;width:100%;margin-top:6px;background:none;border:0;color:var(--accent);font-weight:500;font-size:16px;padding:12px;min-height:46px;text-decoration:underline;text-underline-offset:3px}
+.pasos{list-style:none;counter-reset:p;padding:0;margin:18px 0 0;display:grid;gap:10px}
+.pasos li{counter-increment:p;display:flex;gap:12px;align-items:flex-start;color:var(--ink-2);font-size:16px}
+.pasos li::before{content:counter(p);flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:600;font-size:14px}
+.aviso{font-size:14.5px;color:var(--ink-3);text-align:center;margin:18px 0 0}
+.estado{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;font-size:14.5px;font-weight:500;background:var(--accent-soft);color:var(--accent)}
+.estado.activo{background:var(--ok-soft);color:var(--ok-ink)}
+.estado.baja,.estado.pausado{background:var(--warn-soft);color:var(--warn)}
+.dato{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:16px}
+.dato:first-of-type{border-top:0}
+.dato b{font-weight:600}
+.sem{display:flex;gap:12px;align-items:center;margin:0 0 12px}
+.punto{flex:none;width:14px;height:14px;border-radius:50%;margin-top:5px}
+.punto.verde{background:var(--ok)}
+.punto.amarillo{background:var(--warn-dot)}
+.punto.rojo{background:var(--err)}
+.sem .punto{width:22px;height:22px;margin:0}
+.req{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:10px}
+.req li{display:flex;gap:10px;align-items:flex-start;font-size:16px}
+.req small{display:block;color:var(--ink-3);font-size:14.5px;margin-top:2px}
+.sigue{background:var(--warn-soft);border:1px solid var(--warn-line);border-radius:14px;padding:12px 14px;margin:0 0 12px;font-size:16px}
+.sigue.rojo{background:var(--err-soft);border-color:var(--err-line)}
+.nota{font-size:14px;color:var(--ink-3);margin-top:10px}
+.caja{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.casilla{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--ink);margin:12px 0}
+.casilla input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--accent)}
+.boot{text-align:center;padding:60px 0;color:var(--ink-2)}
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:g .8s linear infinite;display:inline-block}
+@keyframes g{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,14px);max-width:min(440px,calc(100% - 32px));padding:13px 16px;border-radius:14px;background:var(--ink);color:#fff;font-size:15.5px;line-height:1.4;box-shadow:var(--sh-2);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s var(--ease);z-index:60}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:#861D15}
+.toast.ok{background:var(--ok-ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="marca"><i aria-hidden="true">PM</i><span>Citas Garantizadas</span></div>
+  <main id="main" tabindex="-1"><div class="boot"><span class="spin" aria-hidden="true"></span><p>Cargando tu cuenta...</p></div></main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* Mi cuenta (actividad 25, regla 34): pagina estatica que solo habla con wa-cuenta. Sin contrasenas: ella pide su link por WhatsApp
+   (un solo uso, 15 minutos) y aqui se cambia por una sesion de 24 horas guardada en este navegador. Nada de esta pagina es secreto. */
+const Q = new URLSearchParams(location.search);
+const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+// En el laboratorio local se puede apuntar a staging (?api=staging); en cuenta.prompt-maestro.com siempre es produccion
+const API_URL = LOCAL && Q.get("api") === "staging"
+  ? "https://qtxmimkuvdeeevcktawh.supabase.co/functions/v1/wa-cuenta"
+  : "https://nlecncqjpuhasbvnhxby.supabase.co/functions/v1/wa-cuenta";
+const SK = "pm_cuenta_sesion";
+const SIN_RED = "No pudimos conectarnos. Revisa tu internet e inténtalo de nuevo.";
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get() { try { const v = JSON.parse(localStorage.getItem(SK) || "null"); return v && v.sesion && Date.parse(v.vence) > Date.now() ? v : null; } catch { return null; } },
+  set(v) { try { localStorage.setItem(SK, JSON.stringify(v)); } catch { /* sin almacenamiento: la sesion vive mientras la pagina este abierta */ } },
+  del() { try { localStorage.removeItem(SK); } catch { /* nada */ } },
+};
+
+class ApiError extends Error {
+  constructor(status, estado, msg) { super(msg); this.status = status; this.estado = estado; }
+}
+/* Modo demostracion (?demo=1): datos inventados, sin llamar al motor. Sirve para revisar el diseno. */
+const DEMO = Q.get("demo") === "1";
+const Demo = {
+  baja: null,
+  cuenta() {
+    return {
+      hola: "Bella",
+      negocio: { nombre: "Studio Bella (demostración)", estado: "activo", estado_texto: "Tu asistente está trabajando.", personas: "clientas" },
+      plan: { nombre: "Plata", periodo: "mensual", cobro: this.baja ? "Tu servicio está pagado hasta el lunes 14 de diciembre de 2026 y ya no se te volverá a cobrar." : "Tu próximo cobro es el lunes 14 de diciembre de 2026." },
+      semaforo: {
+        v: 1, etapa: "activa", etapa_bonita: "tu asistente activo", semaforo: "amarillo",
+        siguiente: { titulo: "Plantillas de Meta", como: "Meta está revisando dos mensajes de tu asistente; no tienes que hacer nada." },
+        requisitos: [
+          { clave: "numero", titulo: "Número conectado", color: "verde", bloquea: true, etapa: "reunion", como: null },
+          { clave: "calendario", titulo: "Calendario compartido", color: "verde", bloquea: true, etapa: "reunion", como: null },
+          { clave: "plantillas", titulo: "Plantillas de Meta", color: "amarillo", bloquea: true, etapa: "fabrica", como: "Meta está revisando dos mensajes de tu asistente; no tienes que hacer nada." },
+          { clave: "maps", titulo: "Ficha de Google Maps", color: "rojo", bloquea: false, etapa: "preparacion", como: "Da de alta tu negocio en Google Maps para que te encuentren." },
+        ],
+      },
+      revisado: "viernes 14 de noviembre",
+      baja: this.baja,
+      puede: { portal: true, copia: true, cancelar: !this.baja },
+      aviso: "Nunca te pediremos códigos ni contraseñas. Para entrar siempre pides tu link desde tu WhatsApp.",
+    };
+  },
+  atender(b) {
+    const ok = (x) => new Promise((r) => setTimeout(() => r({ ok: true, ...x }), 350));
+    if (b.accion === "inicio") return ok({ entrar_url: "#e=demostracion-demostracion-demostracion-01" });
+    if (b.accion === "entrar") return ok({ sesion: "demo", vence: new Date(Date.now() + 864e5).toISOString() });
+    if (b.accion === "ver") return ok({ cuenta: this.cuenta() });
+    if (b.accion === "portal") return Promise.reject(new ApiError(409, "demo", "En la demostración no se abre Stripe."));
+    if (b.accion === "copia") return ok({ nombre: "citas-demostracion.csv", total: 1, csv: "\uFEFFfecha,hora,servicio\r\n2026-11-20,10:00,Uñas en gel\r\n" });
+    if (b.accion === "cancelar") { this.baja = { estado: "programada", ultimo_dia: "lunes 14 de diciembre", borrado: null, puede_deshacer: true }; return ok({ cuenta: this.cuenta() }); }
+    if (b.accion === "deshacer") { this.baja = null; return ok({ cuenta: this.cuenta() }); }
+    return ok({});
+  },
+};
+
+async function api(accion, extra = {}) {
+  if (DEMO) return Demo.atender({ accion, ...extra });
+  const ctrl = new AbortController();
+  const to = setTimeout(() => ctrl.abort(), 40000);
+  let res;
+  try {
+    res = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accion, ...extra }), signal: ctrl.signal });
+  } catch {
+    throw new ApiError(0, "sin_red", SIN_RED);
+  } finally {
+    clearTimeout(to);
+  }
+  let data = null;
+  try { data = await res.json(); } catch { /* sin JSON */ }
+  if (!res.ok || !data || data.ok === false) {
+    throw new ApiError(res.status, (data && data.estado) || "error", (data && data.error) || "Algo falló de nuestro lado. Inténtalo de nuevo en un momento.");
+  }
+  return data;
+}
+
+let toastT;
+function toast(msg, tipo = "info", ms = 5000) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = `toast on ${tipo}`;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { t.className = "toast"; }, ms);
+}
+function pintar(html) {
+  const m = $("#main");
+  m.innerHTML = html;
+  const h = m.querySelector("h1");
+  if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+}
+
+/* ---------- Entrar ---------- */
+let entrarUrl = null;
+async function vistaEntrar(error) {
+  if (entrarUrl === null) {
+    try { entrarUrl = (await api("inicio")).entrar_url || ""; } catch { entrarUrl = ""; }
+  }
+  pintar(`
+    <h1 class="title">Mi cuenta</h1>
+    <p class="lead">Tu plan, tus pagos, tu semáforo y tus citas, en un solo lugar. Entras sin contraseña: te mandamos un link a tu WhatsApp.</p>
+    ${error ? `<div class="sigue rojo" role="alert">${esc(error)}</div>` : ""}
+    <div class="card">
+      ${entrarUrl
+        ? `<a class="btn btn-primary" href="${esc(entrarUrl)}" target="_blank" rel="noopener">Entrar con mi WhatsApp</a>`
+        : `<p>Escríbenos por WhatsApp "quiero entrar a Mi cuenta" desde tu número personal y te mandamos tu link.</p>`}
+      <ol class="pasos">
+        <li>Se abre tu WhatsApp con un mensaje ya escrito. Mándalo desde tu WhatsApp personal, el que diste al contratar.</li>
+        <li>Te contestamos con tu link para entrar. Sirve una sola vez y vence en 15 minutos.</li>
+        <li>Tócalo y listo: tu cuenta queda abierta 24 horas en este celular.</li>
+      </ol>
+    </div>
+    <p class="aviso">Nunca te pediremos códigos ni contraseñas. Si alguien te los pide a nombre de Prompt Maestro, no los compartas.</p>`);
+}
+
+/* ---------- La cuenta ---------- */
+let C = null;
+const ESTADO_CORTO = { activo: "Activo", prueba: "En prueba", espera: "En espera", pausado: "En pausa", baja: "Apagado" };
+const COLOR_TEXTO = { verde: "Todo en orden", amarillo: "En camino", rojo: "Algo necesita tu atención" };
+let confirmando = false;
+
+function vistaCuenta() {
+  const c = C;
+  const n = c.negocio, p = c.plan, s = c.semaforo, b = c.baja;
+  const plan = p.nombre ? `${p.nombre}${p.periodo ? ` (${p.periodo})` : ""}` : "";
+  // Lo que sigue ya va arriba con su "como": la lista no lo repite
+  const reqs = s ? s.requisitos.filter((r) => r.color !== "verde" && !(s.siguiente && r.titulo === s.siguiente.titulo)) : [];
+  const verdes = s ? s.requisitos.filter((r) => r.color === "verde").length : 0;
+  pintar(`
+    <h1 class="title">${c.hola ? `Hola, ${esc(c.hola)}` : "Tu cuenta"}</h1>
+    <p class="lead"><b>${esc(n.nombre)}</b><br><span class="estado ${esc(n.estado)}">${esc(ESTADO_CORTO[n.estado] || n.estado)}</span> ${esc(n.estado_texto)}</p>
+
+    <section class="card" aria-labelledby="t-plan">
+      <h2 id="t-plan">Tu plan</h2>
+      ${plan ? `<div class="dato"><span>Plan</span><b>${esc(plan)}</b></div>` : ""}
+      ${p.cobro ? `<p>${esc(p.cobro)}</p>` : ""}
+      ${c.puede.portal ? `<button type="button" class="btn btn-sec" data-act="portal">Pagos y tarjeta</button>
+      <p class="nota">Ahí cambias tu tarjeta y ves tus recibos. Se abre en Stripe, la página segura de pagos.</p>` : `<p class="nota">Tus pagos aparecen aquí después de tu primer cobro.</p>`}
+    </section>
+
+    ${s ? `<section class="card" aria-labelledby="t-sem">
+      <h2 id="t-sem">Tu semáforo</h2>
+      <div class="sem"><span class="punto ${esc(s.semaforo)}" aria-hidden="true"></span><div><b>${esc(COLOR_TEXTO[s.semaforo] || "")}</b>${s.etapa === "activa" ? "" : `<br><span class="nota">Estamos en ${esc(s.etapa_bonita)}.</span>`}</div></div>
+      ${s.siguiente ? `<div class="sigue ${s.semaforo === "rojo" ? "rojo" : ""}"><b>Lo que sigue: ${esc(s.siguiente.titulo)}.</b> ${esc(s.siguiente.como)}</div>` : ""}
+      ${reqs.length ? `<ul class="req">${reqs.map((r) => `<li><span class="punto ${esc(r.color)}" aria-label="${esc(r.color)}"></span><span>${esc(r.titulo)}${r.bloquea ? "" : " (recomendado)"}${r.como ? `<small>${esc(r.como)}</small>` : ""}</span></li>`).join("")}</ul>` : ""}
+      ${verdes ? `<p class="nota">${verdes} ${verdes === 1 ? "punto está" : "puntos están"} en verde.</p>` : ""}
+      ${c.revisado ? `<p class="nota">Revisado el ${esc(c.revisado)}.</p>` : ""}
+    </section>` : ""}
+
+    <section class="card" aria-labelledby="t-citas">
+      <h2 id="t-citas">Tus citas</h2>
+      <p>Descarga una copia de todas tus citas con los datos de tus ${esc(n.personas)}, en un archivo que abre Excel.</p>
+      <button type="button" class="btn btn-sec" data-act="copia">Descargar mis citas</button>
+      <p class="nota">Es información de tus ${esc(n.personas)}: guárdala con cuidado.</p>
+    </section>
+
+    <section class="card" aria-labelledby="t-baja">
+      <h2 id="t-baja">Dejar el servicio</h2>
+      ${vistaBaja(c, b)}
+    </section>
+
+    <button type="button" class="btn-link" data-act="salir">Salir</button>
+    <p class="aviso">${esc(c.aviso)}</p>`);
+}
+
+function vistaBaja(c, b) {
+  if (b && b.estado === "programada") {
+    return `<p>Cancelaste tu servicio. Tu asistente trabaja hasta el <b>${esc(b.ultimo_dia)}</b> y después se apaga solo. 25 días después borramos todo lo de tu negocio.</p>
+      <p>Antes de esa fecha, descarga la copia de tus citas.</p>
+      ${b.puede_deshacer ? `<button type="button" class="btn btn-sec" data-act="deshacer">Ya no quiero cancelar</button>` : `<p class="nota">Si tienes dudas, escríbenos por WhatsApp.</p>`}`;
+  }
+  if (b && b.estado === "apagada") {
+    return `<p>Tu asistente está apagado.${b.borrado ? ` El <b>${esc(b.borrado)}</b> borramos todo lo de tu negocio.` : ""}</p>
+      <p>Hasta entonces puedes descargar la copia de tus citas. Si quieres volver, escríbenos por WhatsApp.</p>`;
+  }
+  if (!c.puede.cancelar) {
+    // Sin "hazlo en Pagos y tarjeta": con un cobro pendiente, cancelar ahi apaga de inmediato (actividad 24); mejor lo vemos con ella
+    return `<p>Para cancelar tu servicio, escríbenos por WhatsApp y lo vemos contigo.</p>`;
+  }
+  if (!confirmando) {
+    return `<p>Puedes cancelar cuando quieras. Ya no se te vuelve a cobrar y tu asistente trabaja hasta el último día que ya pagaste.</p>
+      <button type="button" class="btn-link" data-act="quiero-cancelar">Cancelar mi servicio</button>`;
+  }
+  return `<div class="caja">
+      <p><b>Antes de cancelar:</b></p>
+      <p>Tu asistente sigue trabajando hasta el último día que ya pagaste y después se apaga solo. 25 días después borramos todo lo de tu negocio: tus citas, tus ${esc(c.negocio.personas)} y tu catálogo. Si el calendario lo creamos nosotros, también se borra.</p>
+      <p>Mientras no llegue tu último día, puedes arrepentirte aquí mismo.</p>
+      <label class="casilla"><input type="checkbox" id="acepto"> <span>Entiendo, quiero cancelar mi servicio.</span></label>
+      <button type="button" class="btn btn-mal" data-act="cancelar">Sí, cancelar mi servicio</button>
+      <button type="button" class="btn-link" data-act="no-cancelar">No, regresar</button>
+    </div>`;
+}
+
+/* ---------- Acciones ---------- */
+let ocupado = false;
+async function conCarga(btn, fn) {
+  if (ocupado) return;
+  ocupado = true;
+  const antes = btn ? btn.innerHTML : "";
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin" aria-hidden="true"></span><span>Un momento...</span>'; }
+  try { await fn(); } catch (e) { manejar(e); } finally {
+    ocupado = false;
+    if (btn && btn.isConnected) { btn.disabled = false; btn.innerHTML = antes; }
+  }
+}
+function manejar(e) {
+  if (e instanceof ApiError && e.status === 401) { store.del(); C = null; vistaEntrar(e.message); return; }
+  toast((e && e.message) || SIN_RED, "err", 7000);
+}
+const sesion = () => (store.get() || {}).sesion;
+
+const ACCIONES = {
+  async portal() {
+    const r = await api("portal", { sesion: sesion() });
+    location.href = r.url;
+  },
+  async copia() {
+    const r = await api("copia", { sesion: sesion() });
+    const url = URL.createObjectURL(new Blob([r.csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = r.nombre || "mis-citas.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    toast(r.total ? `Listo: ${r.total} cita${r.total === 1 ? "" : "s"} en tu archivo.` : "Listo: todavía no tienes citas, el archivo va vacío.", "ok");
+  },
+  "quiero-cancelar"() { confirmando = true; vistaCuenta(); const c = $("#acepto"); if (c) c.focus(); },
+  "no-cancelar"() { confirmando = false; vistaCuenta(); },
+  async cancelar() {
+    const c = $("#acepto");
+    if (!c || !c.checked) { toast("Marca la casilla para confirmar que quieres cancelar.", "err"); return; }
+    const r = await api("cancelar", { sesion: sesion(), confirmar: true });
+    confirmando = false;
+    C = r.cuenta;
+    vistaCuenta();
+    toast("Listo: tu cancelación quedó anotada. Te mandamos la confirmación a tu WhatsApp.", "ok", 7000);
+  },
+  async deshacer() {
+    const r = await api("deshacer", { sesion: sesion() });
+    C = r.cuenta;
+    vistaCuenta();
+    toast("Listo: tu servicio sigue como antes.", "ok", 6000);
+  },
+  async salir() {
+    const s = sesion();
+    store.del();
+    C = null;
+    try { if (s) await api("salir", { sesion: s }); } catch { /* la sesion ya no esta en este navegador */ }
+    vistaEntrar();
+  },
+};
+
+document.addEventListener("click", (ev) => {
+  const el = ev.target.closest("[data-act]");
+  if (!el) return;
+  const fn = ACCIONES[el.dataset.act];
+  if (!fn) return;
+  ev.preventDefault();
+  conCarga(el.tagName === "BUTTON" ? el : null, fn);
+});
+
+/* ---------- Arranque ---------- */
+async function arrancar() {
+  const h = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const enlace = h.get("e");
+  // El token del link sale de la direccion de inmediato (ni el historial ni una captura de pantalla lo guardan)
+  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  try {
+    if (enlace) {
+      try {
+        const r = await api("entrar", { enlace });
+        store.set({ sesion: r.sesion, vence: r.vence });
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401 && !store.get()) { await vistaEntrar(e.message); return; }
+        if (!(e instanceof ApiError && e.status === 401)) throw e;
+      }
+    }
+    const s = store.get();
+    if (!s) { await vistaEntrar(); return; }
+    C = (await api("ver", { sesion: s.sesion })).cuenta;
+    vistaCuenta();
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401) { store.del(); await vistaEntrar(e.message); return; }
+    pintar(`<div class="boot"><h1 class="title">No pudimos abrir tu cuenta</h1><p>${esc((e && e.message) || SIN_RED)}</p><button type="button" class="btn btn-primary" id="reintentar">Intentar de nuevo</button></div>`);
+    $("#reintentar").addEventListener("click", () => location.reload());
+  }
+}
+// Un link nuevo con la pagina ya abierta solo cambia el # (no recarga): se arranca otra vez para canjearlo
+window.addEventListener("hashchange", () => { if (/[#&]e=/.test(location.hash)) location.reload(); });
+// Dentro de un marco de otra pagina no se pinta nada (alguien podria cubrirla para que toque sin ver): solo un link para abrirla sola
+if (window.top !== window.self) {
+  $("#main").innerHTML = '<div class="boot"><p>Por seguridad, Mi cuenta solo se abre en su propia ventana.</p><a class="btn btn-primary" href="https://cuenta.prompt-maestro.com/" target="_top" rel="noopener">Abrir Mi cuenta</a></div>';
+} else {
+  arrancar();
+}
+</script>
+</body>
+</html>
