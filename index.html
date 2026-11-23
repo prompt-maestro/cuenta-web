@@ -80,6 +80,12 @@ h1:focus,h1:focus-visible{outline:none}
 .caja{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
 .casilla{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--ink);margin:12px 0}
 .casilla input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--accent)}
+.opcion{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1.5px solid var(--line);border-radius:14px;margin:0 0 10px;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.opcion.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.opcion input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--accent)}
+.opcion b{display:block}
+.opcion i{display:block;color:var(--ink-2)}
+.opcion small{display:block;color:var(--ink-3);font-size:14.5px;margin-top:2px}
 .boot{text-align:center;padding:60px 0;color:var(--ink-2)}
 .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:g .8s linear infinite;display:inline-block}
 @keyframes g{to{transform:rotate(360deg)}}
@@ -124,6 +130,7 @@ class ApiError extends Error {
 const DEMO = Q.get("demo") === "1";
 const Demo = {
   baja: null,
+  trato: null,
   cuenta() {
     return {
       hola: "Bella",
@@ -142,6 +149,7 @@ const Demo = {
       revisado: "viernes 14 de noviembre",
       baja: this.baja,
       puede: { portal: true, copia: true, cancelar: !this.baja },
+      trato: { actual: this.trato || "tu", elegido: !!this.trato, persona: "clienta", articulo: "una" },
       aviso: "Nunca te pediremos códigos ni contraseñas. Para entrar siempre pides tu link desde tu WhatsApp.",
     };
   },
@@ -154,6 +162,7 @@ const Demo = {
     if (b.accion === "copia") return ok({ nombre: "citas-demostracion.csv", total: 1, csv: "\uFEFFfecha,hora,servicio\r\n2026-11-20,10:00,Uñas en gel\r\n" });
     if (b.accion === "cancelar") { this.baja = { estado: "programada", ultimo_dia: "lunes 14 de diciembre", borrado: null, puede_deshacer: true }; return ok({ cuenta: this.cuenta() }); }
     if (b.accion === "deshacer") { this.baja = null; return ok({ cuenta: this.cuenta() }); }
+    if (b.accion === "trato") { this.trato = b.trato === "usted" ? "usted" : "tu"; return ok({ cuenta: this.cuenta() }); }
     return ok({});
   },
 };
@@ -241,6 +250,8 @@ function vistaCuenta() {
       <p class="nota">Ahí cambias tu tarjeta y ves tus recibos. Se abre en Stripe, la página segura de pagos.</p>` : `<p class="nota">Tus pagos aparecen aquí después de tu primer cobro.</p>`}
     </section>
 
+    ${vistaTrato(c)}
+
     ${s ? `<section class="card" aria-labelledby="t-sem">
       <h2 id="t-sem">Tu semáforo</h2>
       <div class="sem"><span class="punto ${esc(s.semaforo)}" aria-hidden="true"></span><div><b>${esc(COLOR_TEXTO[s.semaforo] || "")}</b>${s.etapa === "activa" ? "" : `<br><span class="nota">Estamos en ${esc(s.etapa_bonita)}.</span>`}</div></div>
@@ -264,6 +275,26 @@ function vistaCuenta() {
 
     <button type="button" class="btn-link" data-act="salir">Salir</button>
     <p class="aviso">${esc(c.aviso)}</p>`);
+}
+
+/* Actividad 88: como les habla su asistente a sus clientas. Se elige aqui y se guarda con el boton; cambia desde el siguiente mensaje */
+let tratoSel = null;
+function vistaTrato(c) {
+  const t = c.trato;
+  if (!t) return "";
+  const sel = tratoSel || t.actual, n = c.negocio, la = t.articulo === "un" ? "el" : "la";
+  const opcion = (val, titulo, ejemplo, nota) => `
+      <label class="opcion${sel === val ? " sel" : ""}"><input type="radio" name="trato" value="${val}" aria-label="${titulo}. ${nota}"${sel === val ? " checked" : ""}>
+        <span><b>${titulo}</b><i>“${ejemplo}”</i><small>${nota}</small></span></label>`;
+  return `<section class="card" aria-labelledby="t-trato">
+      <h2 id="t-trato">¿Cómo les habla tu asistente a tus ${esc(n.personas)}?</h2>
+      <div role="radiogroup" aria-labelledby="t-trato">
+        ${opcion("tu", "De tú", "¡Hola! Claro, ¿qué día te acomoda?", `Si ${esc(t.articulo)} ${esc(t.persona)} te escribe de usted, le contesta de usted.`)}
+        ${opcion("usted", "De usted", "¡Hola! Claro, ¿qué día le acomoda?", `Siempre de usted, aunque ${la} ${esc(t.persona)} le hable de tú.`)}
+      </div>
+      <button type="button" class="btn btn-sec" data-act="trato"${sel === t.actual && t.elegido ? " disabled" : ""}>Guardar</button>
+      <p class="nota">${t.elegido ? "" : "Todavía no lo eliges: les habla de tú. "}Cambia desde su siguiente mensaje. Contigo, tu asistente siempre habla de tú.</p>
+    </section>`;
 }
 
 function vistaBaja(c, b) {
@@ -340,6 +371,14 @@ const ACCIONES = {
     vistaCuenta();
     toast("Listo: tu cancelación quedó anotada. Te mandamos la confirmación a tu WhatsApp.", "ok", 7000);
   },
+  async trato() {
+    const v = tratoSel || (C && C.trato && C.trato.actual) || "tu";
+    const r = await api("trato", { sesion: sesion(), trato: v });
+    tratoSel = null;
+    C = r.cuenta;
+    vistaCuenta();
+    toast(v === "usted" ? "Listo: desde su siguiente mensaje, tu asistente les habla de usted." : "Listo: desde su siguiente mensaje, tu asistente les habla de tú.", "ok", 6000);
+  },
   async deshacer() {
     const r = await api("deshacer", { sesion: sesion() });
     C = r.cuenta;
@@ -354,6 +393,15 @@ const ACCIONES = {
     vistaEntrar();
   },
 };
+
+document.addEventListener("change", (ev) => {
+  const el = ev.target;
+  if (!(el instanceof HTMLInputElement) || el.name !== "trato" || !C || !C.trato) return;
+  tratoSel = el.value === "usted" ? "usted" : "tu";
+  document.querySelectorAll(".opcion").forEach((o) => o.classList.toggle("sel", o.contains(el)));
+  const b = document.querySelector('[data-act="trato"]');
+  if (b) b.disabled = tratoSel === C.trato.actual && C.trato.elegido;
+});
 
 document.addEventListener("click", (ev) => {
   const el = ev.target.closest("[data-act]");
