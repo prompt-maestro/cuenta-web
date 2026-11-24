@@ -126,8 +126,10 @@ const store = {
 class ApiError extends Error {
   constructor(status, estado, msg) { super(msg); this.status = status; this.estado = estado; }
 }
-/* Modo demostracion (?demo=1): datos inventados, sin llamar al motor. Sirve para revisar el diseno. */
+/* Modo demostracion (?demo=1): datos inventados, sin llamar al motor. Sirve para revisar el diseno. Con &adeudo=1, el caso de una
+   profesional con un pago pendiente (cancelar apaga hoy, actividad 112). */
 const DEMO = Q.get("demo") === "1";
+const DEMO_ADEUDO = Q.get("adeudo") === "1";
 const Demo = {
   baja: null,
   trato: null,
@@ -135,7 +137,7 @@ const Demo = {
     return {
       hola: "Bella",
       negocio: { nombre: "Studio Bella (demostración)", estado: "activo", estado_texto: "Tu asistente está trabajando.", personas: "clientas" },
-      plan: { nombre: "Plata", periodo: "mensual", cobro: this.baja ? "Tu servicio está pagado hasta el lunes 14 de diciembre de 2026 y ya no se te volverá a cobrar." : "Tu próximo cobro es el lunes 14 de diciembre de 2026." },
+      plan: { nombre: "Plata", periodo: "mensual", cobro: DEMO_ADEUDO ? (this.baja ? "Tu suscripción ya terminó." : "No pudimos cobrar tu mensualidad. Actualiza tu tarjeta en Pagos y tarjeta para que tu asistente siga trabajando.") : this.baja ? "Tu servicio está pagado hasta el lunes 14 de diciembre de 2026 y ya no se te volverá a cobrar." : "Tu próximo cobro es el lunes 14 de diciembre de 2026." },
       semaforo: {
         v: 1, etapa: "activa", etapa_bonita: "tu asistente activo", semaforo: "amarillo",
         siguiente: { titulo: "Plantillas de Meta", como: "Meta está revisando dos mensajes de tu asistente; no tienes que hacer nada." },
@@ -148,7 +150,7 @@ const Demo = {
       },
       revisado: "viernes 14 de noviembre",
       baja: this.baja,
-      puede: { portal: true, copia: true, cancelar: !this.baja },
+      puede: { portal: true, copia: true, cancelar: !this.baja && !DEMO_ADEUDO, cancelar_hoy: !this.baja && DEMO_ADEUDO },
       trato: { actual: this.trato || "tu", elegido: !!this.trato, persona: "clienta", articulo: "una" },
       aviso: "Nunca te pediremos códigos ni contraseñas. Para entrar siempre pides tu link desde tu WhatsApp.",
     };
@@ -160,7 +162,12 @@ const Demo = {
     if (b.accion === "ver") return ok({ cuenta: this.cuenta() });
     if (b.accion === "portal") return Promise.reject(new ApiError(409, "demo", "En la demostración no se abre Stripe."));
     if (b.accion === "copia") return ok({ nombre: "citas-demostracion.csv", total: 1, csv: "\uFEFFfecha,hora,servicio\r\n2026-11-20,10:00,Uñas en gel\r\n" });
-    if (b.accion === "cancelar") { this.baja = { estado: "programada", ultimo_dia: "lunes 14 de diciembre", borrado: null, puede_deshacer: true }; return ok({ cuenta: this.cuenta() }); }
+    if (b.accion === "cancelar") {
+      this.baja = b.apagar_hoy
+        ? { estado: "apagada", ultimo_dia: "lunes 23 de noviembre", borrado: "viernes 18 de diciembre", puede_deshacer: false }
+        : { estado: "programada", ultimo_dia: "lunes 14 de diciembre", borrado: null, puede_deshacer: true };
+      return ok({ cuenta: this.cuenta() });
+    }
     if (b.accion === "deshacer") { this.baja = null; return ok({ cuenta: this.cuenta() }); }
     if (b.accion === "trato") { this.trato = b.trato === "usted" ? "usted" : "tu"; return ok({ cuenta: this.cuenta() }); }
     return ok({});
@@ -307,8 +314,26 @@ function vistaBaja(c, b) {
     return `<p>Tu asistente está apagado.${b.borrado ? ` El <b>${esc(b.borrado)}</b> borramos todo lo de tu negocio.` : ""}</p>
       <p>Hasta entonces puedes descargar la copia de tus citas. Si quieres volver, escríbenos por WhatsApp.</p>`;
   }
+  if (!c.puede.cancelar && c.puede.cancelar_hoy) {
+    // Con un pago pendiente no hay días pagados: puede cancelar sola, pero su asistente se apaga hoy y antes se lo decimos claro
+    // (actividad 112, decisión de José)
+    if (!confirmando) {
+      return `<p>Tienes un pago pendiente. Puedes ponerte al corriente en <b>Pagos y tarjeta</b>, o cancelar tu servicio.</p>
+        <button type="button" class="btn-link" data-act="quiero-cancelar">Cancelar mi servicio</button>`;
+    }
+    return `<div class="caja">
+        <p><b>Antes de cancelar, lee esto:</b></p>
+        <p>Como tienes un pago pendiente, tu servicio ya no tiene días pagados. Si cancelas ahora, <b>pierdes todo tu sistema de Prompt Maestro</b>:</p>
+        <p>• Tu asistente queda apagado <b>desde hoy</b> y ya no atiende a tus ${esc(c.negocio.personas)}.<br>
+        • En 25 días borramos todo lo de tu negocio: tu asistente, tu catálogo, tus citas y tus ${esc(c.negocio.personas)}. Si el calendario lo creamos nosotros, también se borra.<br>
+        • Ya no se te cobra nada.</p>
+        <p>Antes de que se borre puedes descargar aquí la copia de tus citas. Si prefieres seguir con tu asistente, ponte al corriente en <b>Pagos y tarjeta</b>.</p>
+        <label class="casilla"><input type="checkbox" id="acepto"> <span>Entiendo que mi asistente se apaga hoy y que pierdo todo lo de mi negocio en Prompt Maestro.</span></label>
+        <button type="button" class="btn btn-mal" data-act="cancelar">Sí, cancelar y apagar hoy</button>
+        <button type="button" class="btn-link" data-act="no-cancelar">No, regresar</button>
+      </div>`;
+  }
   if (!c.puede.cancelar) {
-    // Sin "hazlo en Pagos y tarjeta": con un cobro pendiente, cancelar ahi apaga de inmediato (actividad 24); mejor lo vemos con ella
     return `<p>Para cancelar tu servicio, escríbenos por WhatsApp y lo vemos contigo.</p>`;
   }
   if (!confirmando) {
@@ -365,11 +390,12 @@ const ACCIONES = {
   async cancelar() {
     const c = $("#acepto");
     if (!c || !c.checked) { toast("Marca la casilla para confirmar que quieres cancelar.", "err"); return; }
-    const r = await api("cancelar", { sesion: sesion(), confirmar: true });
+    const hoy = !C.puede.cancelar && C.puede.cancelar_hoy;
+    const r = await api("cancelar", { sesion: sesion(), confirmar: true, ...(hoy ? { apagar_hoy: true } : {}) });
     confirmando = false;
     C = r.cuenta;
     vistaCuenta();
-    toast("Listo: tu cancelación quedó anotada. Te mandamos la confirmación a tu WhatsApp.", "ok", 7000);
+    toast(hoy ? "Listo: tu servicio quedó cancelado. Te mandamos la confirmación a tu WhatsApp." : "Listo: tu cancelación quedó anotada. Te mandamos la confirmación a tu WhatsApp.", "ok", 7000);
   },
   async trato() {
     const v = tratoSel || (C && C.trato && C.trato.actual) || "tu";
