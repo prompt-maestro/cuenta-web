@@ -86,6 +86,15 @@ h1:focus,h1:focus-visible{outline:none}
 .opcion b{display:block}
 .opcion i{display:block;color:var(--ink-2)}
 .opcion small{display:block;color:var(--ink-3);font-size:14.5px;margin-top:2px}
+.campo{display:block;margin:0 0 12px}
+.campo label{display:block}
+.campo span{display:block;font-size:15px;font-weight:500;color:var(--ink);margin:0 0 6px}
+.campo input{width:100%;box-sizing:border-box;min-height:50px;padding:12px 14px;border:1.5px solid var(--line-2);border-radius:12px;background:var(--surface);font-size:17px}
+.campo input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.campo small{display:block;color:var(--ink-3);font-size:14px;margin-top:4px}
+.campo.mal input{border-color:var(--err)}
+.err{color:var(--err);font-size:14.5px;margin:4px 0 0}
+.ok-tr{background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:14px;padding:12px 14px;margin:0 0 12px;font-size:16px;color:var(--ok-ink)}
 .boot{text-align:center;padding:60px 0;color:var(--ink-2)}
 .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:g .8s linear infinite;display:inline-block}
 @keyframes g{to{transform:rotate(360deg)}}
@@ -133,6 +142,7 @@ const DEMO_ADEUDO = Q.get("adeudo") === "1";
 const Demo = {
   baja: null,
   trato: null,
+  transf: null,
   cuenta() {
     return {
       hola: "Bella",
@@ -152,6 +162,9 @@ const Demo = {
       baja: this.baja,
       puede: { portal: true, copia: true, cancelar: !this.baja && !DEMO_ADEUDO, cancelar_hoy: !this.baja && DEMO_ADEUDO },
       trato: { actual: this.trato || "tu", elegido: !!this.trato, persona: "clienta", articulo: "una" },
+      transferencia: { activa: !!this.transf, banco: this.transf ? this.transf.banco : null, final: this.transf ? this.transf.final : null, reciente_min: 30,
+        reciente: !/[?&]vieja/.test(location.search), en_alta: /[?&]en_alta/.test(location.search),
+        casilla: "Acepto que mis clientas paguen el anticipo por transferencia o depósito a esta cuenta. Yo reviso y autorizo cada transferencia o depósito; Prompt Maestro no revisa ni responde por estos pagos." },
       aviso: "Nunca te pediremos códigos ni contraseñas. Para entrar siempre pides tu link desde tu WhatsApp.",
     };
   },
@@ -170,6 +183,13 @@ const Demo = {
     }
     if (b.accion === "deshacer") { this.baja = null; return ok({ cuenta: this.cuenta() }); }
     if (b.accion === "trato") { this.trato = b.trato === "usted" ? "usted" : "tu"; return ok({ cuenta: this.cuenta() }); }
+    if (b.accion === "transferencia") {
+      if (b.activa === false) { this.transf = null; return ok({ cuenta: this.cuenta() }); }
+      const d = String(b.clabe || "").replace(/\D/g, "");
+      if (d.length !== 18) return Promise.reject(Object.assign(new ApiError(400, "invalido", `La CLABE tiene 18 dígitos y esta trae ${d.length}: revísala.`), { campo: "clabe" }));
+      this.transf = { banco: b.banco || "BBVA", final: d.slice(-4) };
+      return ok({ cuenta: this.cuenta(), avisos: [] });
+    }
     return ok({});
   },
 };
@@ -189,7 +209,7 @@ async function api(accion, extra = {}) {
   let data = null;
   try { data = await res.json(); } catch { /* sin JSON */ }
   if (!res.ok || !data || data.ok === false) {
-    throw new ApiError(res.status, (data && data.estado) || "error", (data && data.error) || "Algo falló de nuestro lado. Inténtalo de nuevo en un momento.");
+    throw Object.assign(new ApiError(res.status, (data && data.estado) || "error", (data && data.error) || "Algo falló de nuestro lado. Inténtalo de nuevo en un momento."), { campo: (data && data.campo) || null });
   }
   return data;
 }
@@ -232,6 +252,12 @@ async function vistaEntrar(error) {
     <p class="aviso">Nunca te pediremos códigos ni contraseñas. Si alguien te los pide a nombre de Prompt Maestro, no los compartas.</p>`);
 }
 
+/* El foco al campo con el problema (pintar lo manda al titulo) */
+function focoTr(k) {
+  const el = k === "general" ? document.querySelector("#t-tr") : document.querySelector(`#tr-${k}`);
+  if (el) { if (k === "general") el.setAttribute("tabindex", "-1"); el.focus(); }
+}
+
 /* ---------- La cuenta ---------- */
 let C = null;
 const ESTADO_CORTO = { activo: "Activo", prueba: "En prueba", espera: "En espera", pausado: "En pausa", baja: "Apagado" };
@@ -258,6 +284,8 @@ function vistaCuenta() {
     </section>
 
     ${vistaTrato(c)}
+
+    ${vistaTransferencia(c)}
 
     ${s ? `<section class="card" aria-labelledby="t-sem">
       <h2 id="t-sem">Tu semáforo</h2>
@@ -302,6 +330,62 @@ function vistaTrato(c) {
       <button type="button" class="btn btn-sec" data-act="trato"${sel === t.actual && t.elegido ? " disabled" : ""}>Guardar</button>
       <p class="nota">${t.elegido ? "" : "Todavía no lo eliges: les habla de tú. "}Cambia desde su siguiente mensaje. Contigo, tu asistente siempre habla de tú.</p>
     </section>`;
+}
+
+/* Actividad 115 (C): la transferencia como respaldo. La pagina nunca ve la CLABE completa (solo banco y ultimos 4 digitos); guardarla
+   pide haber entrado hace poco (el motor lo revisa) y cada cambio le manda un aviso de seguridad a su WhatsApp */
+const trUi = { abierto: false, titular: "", clabe: "", banco: "", acepto: false, err: {}, avisos: [] };
+function vistaTransferencia(c) {
+  const t = c.transferencia;
+  if (!t) return "";
+  const n = c.negocio, u = trUi;
+  const respaldo = `Con la transferencia activa, tu asistente se la ofrece a tus ${esc(n.personas)} en cada cita, y si un día Mercado Pago falla, es la forma de no perder citas. Tú revisas cada pago en tu banco.`;
+  let h = `<section class="card" aria-labelledby="t-tr">
+      <h2 id="t-tr">Pagos por transferencia</h2>`;
+  // Mientras su alta sigue abierta, se elige en la pagina del alta (el motor la aplica antes del examen de su asistente)
+  if (t.en_alta) {
+    h += t.activa
+      ? `<div class="ok-tr"><b>Activa.</b> Tu cuenta de ${esc(t.banco || "tu banco")} que termina en ${esc(t.final || "")}.</div>`
+      : `<p>${respaldo}</p>`;
+    h += `<p class="nota">Mientras terminas tu alta, la transferencia se elige en tu página del alta. Cuando tu asistente quede activo, la cambias aquí.</p>`;
+    return h + "</section>";
+  }
+  const avisos = u.avisos.length ? `<div class="sigue" role="status">${u.avisos.map((a) => esc(a)).join("<br>")}</div>` : "";
+  if (t.activa && !u.abierto) {
+    h += `<div class="ok-tr"><b>Activa.</b> Tus ${esc(n.personas)} pueden pagar el anticipo por transferencia a tu cuenta de ${esc(t.banco || "tu banco")} que termina en ${esc(t.final || "")}.</div>
+      ${avisos}
+      <p>${respaldo}</p>
+      <button type="button" class="btn btn-sec" data-act="tr-abrir">Cambiar datos</button>
+      <button type="button" class="btn-link" data-act="tr-apagar">Ya no aceptar transferencias</button>`;
+    return h + "</section>";
+  }
+  if (!u.abierto) {
+    h += `<p>${respaldo}</p>
+      <button type="button" class="btn btn-sec" data-act="tr-abrir">Aceptar transferencias</button>`;
+    return h + "</section>";
+  }
+  // Su sesion ya no es reciente: se le pide volver a entrar ANTES de llenar nada (el link nuevo recarga la pagina)
+  if (!t.reciente) {
+    h += `<div class="sigue" role="status">Para cuidar tu dinero, cambiar a dónde llegan tus pagos pide haber entrado en los últimos ${esc(t.reciente_min)} minutos. Toca “Salir”, vuelve a entrar con tu WhatsApp y aquí mismo la guardas.</div>
+      <button type="button" class="btn btn-primary" data-act="salir">Salir y volver a entrar</button>
+      <button type="button" class="btn-link" data-act="tr-cancelar">Cancelar</button>`;
+    return h + "</section>";
+  }
+  const campo = (k, titulo, extra, ayuda) => `
+      <div class="campo${u.err[k] ? " mal" : ""}"><label for="tr-${k}"><span>${titulo}</span></label><input id="tr-${k}" data-tr="${k}" value="${esc(u[k])}" ${extra}${
+        u.err[k] ? ` aria-invalid="true" aria-describedby="tr-${k}-err"` : ayuda ? ` aria-describedby="tr-${k}-ayuda"` : ""}>${ayuda ? `<small id="tr-${k}-ayuda">${ayuda}</small>` : ""}
+      ${u.err[k] ? `<p class="err" id="tr-${k}-err" role="alert">${esc(u.err[k])}</p>` : ""}</div>`;
+  h += `<p>${respaldo}</p>
+      ${campo("titular", "Nombre del titular de la cuenta", 'autocomplete="name" maxlength="80"', "")}
+      ${campo("clabe", "CLABE (18 dígitos)", 'inputmode="numeric" autocomplete="off" maxlength="24"', "La encuentras en la app de tu banco.")}
+      ${campo("banco", "Banco (opcional)", 'maxlength="40"', "Si no lo pones, lo sacamos de tu CLABE.")}
+      <label class="casilla"><input type="checkbox" id="tr-acepto" data-tr="acepto"${u.acepto ? " checked" : ""}${u.err.acepto ? ' aria-invalid="true" aria-describedby="tr-acepto-err"' : ""}> <span>${esc(t.casilla)}</span></label>
+      ${u.err.acepto ? `<p class="err" id="tr-acepto-err" role="alert">${esc(u.err.acepto)}</p>` : ""}
+      ${u.err.general ? `<div class="sigue rojo" role="alert">${esc(u.err.general)}</div>` : ""}
+      <button type="button" class="btn btn-primary" data-act="tr-guardar">Guardar</button>
+      <button type="button" class="btn-link" data-act="tr-cancelar">Cancelar</button>
+      <p class="nota">Por seguridad, guardarla pide que hayas entrado en los últimos ${esc(t.reciente_min)} minutos, y te avisamos por WhatsApp de cada cambio.</p>`;
+  return h + "</section>";
 }
 
 function vistaBaja(c, b) {
@@ -405,6 +489,40 @@ const ACCIONES = {
     vistaCuenta();
     toast(v === "usted" ? "Listo: desde su siguiente mensaje, tu asistente les habla de usted." : "Listo: desde su siguiente mensaje, tu asistente les habla de tú.", "ok", 6000);
   },
+  "tr-abrir"() { trUi.abierto = true; trUi.err = {}; trUi.avisos = []; vistaCuenta(); const i = document.querySelector('[data-tr="titular"]'); if (i) i.focus(); },
+  "tr-cancelar"() { Object.assign(trUi, { abierto: false, clabe: "", acepto: false, err: {} }); vistaCuenta(); },
+  async "tr-guardar"() {
+    trUi.err = {};
+    if (!trUi.acepto) { trUi.err.acepto = "Para aceptar transferencias marca la casilla."; vistaCuenta(); focoTr("acepto"); return; }
+    try {
+      const r = await api("transferencia", { sesion: sesion(), titular: trUi.titular.trim(), clabe: trUi.clabe.trim(), ...(trUi.banco.trim() ? { banco: trUi.banco.trim() } : {}), acepto: true });
+      Object.assign(trUi, { abierto: false, titular: "", clabe: "", banco: "", acepto: false, err: {}, avisos: (r.avisos || []).map((a) => a.charAt(0).toUpperCase() + a.slice(1) + ".") });
+      C = r.cuenta;
+      vistaCuenta();
+      toast(C.negocio.estado === "activo"
+        ? `¡Listo! Tu asistente ya puede ofrecerles la transferencia a tus ${C.negocio.personas}. Te mandamos un aviso a tu WhatsApp.`
+        : "¡Listo! Quedó guardada. Te mandamos un aviso a tu WhatsApp.", "ok", 7000);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) throw e;
+      if (e instanceof ApiError && e.status !== 0) {
+        const k = e.campo && ["titular", "clabe", "banco", "acepto"].includes(e.campo) ? e.campo : "general";
+        trUi.err[k] = e.message;
+        // La sesion ya no es reciente: la vista le pide volver a entrar en lugar del formulario
+        if (e.estado === "sesion_vieja" && C.transferencia) C.transferencia.reciente = false;
+        vistaCuenta();
+        focoTr(k);
+        return;
+      }
+      throw e;
+    }
+  },
+  async "tr-apagar"() {
+    if (!confirm(`¿Ya no aceptar transferencias? Tus ${C.negocio.personas} pagarán el anticipo solo con Mercado Pago.`)) return;
+    const r = await api("transferencia", { sesion: sesion(), activa: false });
+    C = r.cuenta;
+    vistaCuenta();
+    toast("Listo: ya no aceptas transferencias. Te mandamos un aviso a tu WhatsApp.", "ok", 6000);
+  },
   async deshacer() {
     const r = await api("deshacer", { sesion: sesion() });
     C = r.cuenta;
@@ -419,6 +537,14 @@ const ACCIONES = {
     vistaEntrar();
   },
 };
+
+document.addEventListener("input", (ev) => {
+  const el = ev.target;
+  if (!(el instanceof HTMLInputElement) || !el.dataset.tr) return;
+  const k = el.dataset.tr;
+  trUi[k] = k === "acepto" ? el.checked : el.value;
+  delete trUi.err[k];
+});
 
 document.addEventListener("change", (ev) => {
   const el = ev.target;
